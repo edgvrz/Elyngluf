@@ -1,0 +1,453 @@
+
+package clientesoracleapp;
+import java.awt.Color;
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
+
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.table.*;
+import java.sql.*;
+
+
+public class VillaZojha extends javax.swing.JFrame {
+
+    private JTable tablaVZ;
+    private DefaultTableModel modeloTabla;
+
+    private JTextField txtCodigo, txtCapacidad, txtTamanoLote, txtUbicacion, txtPrecio, txtUtilidades;
+    private JButton btnAgregar, btnModificar, btnEliminar, btnRefrescar;
+    private JTextField txtBuscar;
+    private JButton btnBuscar;
+
+    private static final String URL = "jdbc:oracle:thin:@localhost:1521:XE";
+    private static final String USER = "SYSTEM";
+    private static final String PASSWORD = "Oracle";
+ 
+        public VillaZojha() {
+        personalizarFormulario();
+        cargarDatosDesdeBD();
+        setSize(900, 650);
+        setLocationRelativeTo(null);
+    }
+  
+        private void personalizarFormulario() {
+        JPanel panelPrincipal = new JPanel(new BorderLayout());
+        panelPrincipal.setBackground(new Color(245, 245, 245));
+
+        // Título
+        JLabel label = new JLabel("Gestión - Villa Zojha", SwingConstants.CENTER);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 24));
+        label.setForeground(new Color(178, 190, 195));
+        label.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
+        panelPrincipal.add(label, BorderLayout.NORTH);
+
+        // Panel de búsqueda arriba (nuevo)
+        JPanel panelBusqueda = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+        panelBusqueda.setBackground(new Color(245, 245, 245));
+
+        JLabel lblBuscar = new JLabel("Buscar por Código VZ o Ubicación:");
+        lblBuscar.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        txtBuscar = new JTextField(20);
+        btnBuscar = new JButton("Buscar");
+
+        panelBusqueda.add(lblBuscar);
+        panelBusqueda.add(txtBuscar);
+        panelBusqueda.add(btnBuscar);
+
+        panelPrincipal.add(panelBusqueda, BorderLayout.PAGE_START);
+
+        // Tabla
+        String[] columnas = { "Código VZ", "Capacidad", "Tamaño de Lote", "Ubicación", "Precio", "Utilidades" };
+        modeloTabla = new DefaultTableModel(columnas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        tablaVZ = new JTable(modeloTabla);
+        tablaVZ.setBackground(Color.WHITE);
+        tablaVZ.setForeground(Color.DARK_GRAY);
+        tablaVZ.setGridColor(new Color(200, 200, 200));
+        tablaVZ.setRowHeight(25);
+        tablaVZ.setFillsViewportHeight(true);
+
+        JTableHeader header = tablaVZ.getTableHeader();
+        header.setBackground(new Color(100, 149, 237));
+        header.setForeground(Color.WHITE);
+        header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+
+        JScrollPane scrollPane = new JScrollPane(tablaVZ);
+        scrollPane.getViewport().setBackground(new Color(57, 62, 70));
+        panelPrincipal.add(scrollPane, BorderLayout.CENTER);
+
+        // Panel inferior
+        JPanel panelInferior = new JPanel(new BorderLayout());
+        panelInferior.setBackground(new Color(34, 40, 49));
+        panelInferior.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Panel de campos organizados
+        JPanel panelCampos = new JPanel(new GridBagLayout());
+        panelCampos.setBackground(new Color(34, 40, 49));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        Font etiquetaFont = new Font("Segoe UI", Font.BOLD, 13);
+        Color colorTexto = new Color(200, 200, 200);
+
+        // Fila 1
+        gbc.gridx = 0; gbc.gridy = 0;
+        panelCampos.add(crearEtiqueta("Código VZ:", etiquetaFont, colorTexto), gbc);
+        gbc.gridx = 1;
+        txtCodigo = crearCampoTexto("Código VZ");
+        panelCampos.add(txtCodigo, gbc);
+
+        gbc.gridx = 2;
+        panelCampos.add(crearEtiqueta("Capacidad:", etiquetaFont, colorTexto), gbc);
+        gbc.gridx = 3;
+        txtCapacidad = crearCampoTexto("Capacidad");
+        panelCampos.add(txtCapacidad, gbc);
+
+        // Fila 2
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        panelCampos.add(crearEtiqueta("Tamaño de Lote:", etiquetaFont, colorTexto), gbc);
+        gbc.gridx = 1;
+        txtTamanoLote = crearCampoTexto("Tamaño de Lote");
+        panelCampos.add(txtTamanoLote, gbc);
+
+        gbc.gridx = 2;
+        panelCampos.add(crearEtiqueta("Ubicación:", etiquetaFont, colorTexto), gbc);
+        gbc.gridx = 3;
+        txtUbicacion = crearCampoTexto("Ubicación");
+        panelCampos.add(txtUbicacion, gbc);
+
+        // Fila 3
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        panelCampos.add(crearEtiqueta("Precio:", etiquetaFont, colorTexto), gbc);
+        gbc.gridx = 1;
+        txtPrecio = crearCampoTexto("Precio");
+        panelCampos.add(txtPrecio, gbc);
+
+        gbc.gridx = 2;
+        panelCampos.add(crearEtiqueta("Utilidades:", etiquetaFont, colorTexto), gbc);
+        gbc.gridx = 3;
+        txtUtilidades = crearCampoTexto("Utilidades");
+        panelCampos.add(txtUtilidades, gbc);
+
+        // Panel botones
+        JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        panelBotones.setBackground(new Color(34, 40, 49));
+
+        btnAgregar = crearBoton("Agregar");
+        btnModificar = crearBoton("Modificar");
+        btnEliminar = crearBoton("Eliminar");
+        btnRefrescar = crearBoton("Refrescar");
+
+        panelBotones.add(btnAgregar);
+        panelBotones.add(btnModificar);
+        panelBotones.add(btnEliminar);
+        panelBotones.add(btnRefrescar);
+
+        panelInferior.add(panelCampos, BorderLayout.CENTER);
+        panelInferior.add(panelBotones, BorderLayout.SOUTH);
+        panelPrincipal.add(panelInferior, BorderLayout.SOUTH);
+
+        add(panelPrincipal);
+
+        // Eventos
+        btnAgregar.addActionListener(e -> agregarRegistro());
+        btnModificar.addActionListener(e -> modificarRegistro());
+        btnEliminar.addActionListener(e -> eliminarRegistro());
+        btnRefrescar.addActionListener(e -> cargarDatosDesdeBD());
+
+        btnBuscar.addActionListener(e -> buscarRegistros());
+
+        tablaVZ.getSelectionModel().addListSelectionListener(event -> {
+            if (!event.getValueIsAdjusting() && tablaVZ.getSelectedRow() != -1) {
+                cargarDatosCamposDesdeTabla();
+            }
+        });
+    }
+
+
+
+        private JTextField crearCampoTexto(String tooltip) {
+        JTextField txt = new JTextField();
+        txt.setToolTipText(tooltip);
+        txt.setBackground(Color.WHITE);
+        txt.setForeground(Color.DARK_GRAY);
+        txt.setBorder(BorderFactory.createLineBorder(new Color(180, 180, 180)));
+        txt.setHorizontalAlignment(JTextField.CENTER);
+        txt.setPreferredSize(new Dimension(180, 30)); // ancho y alto
+        return txt;
+    }
+
+    private JLabel crearEtiqueta(String texto, Font font, Color color) {
+        JLabel label = new JLabel(texto);
+        label.setFont(font);
+        label.setForeground(color);
+        return label;
+    }
+
+    private JButton crearBoton(String texto) {
+        JButton btn = new JButton(texto);
+        btn.setBackground(new Color(100, 149, 237));
+        btn.setForeground(Color.WHITE);
+        btn.setFocusPainted(false);
+        return btn;
+    }
+
+    private void cargarDatosCamposDesdeTabla() {
+        int fila = tablaVZ.getSelectedRow();
+        if (fila >= 0) {
+            txtCodigo.setText(modeloTabla.getValueAt(fila, 0).toString());
+            txtCapacidad.setText(modeloTabla.getValueAt(fila, 1).toString());
+            txtTamanoLote.setText(modeloTabla.getValueAt(fila, 2).toString());
+            txtUbicacion.setText(modeloTabla.getValueAt(fila, 3).toString());
+            txtPrecio.setText(modeloTabla.getValueAt(fila, 4).toString());
+            txtUtilidades.setText(modeloTabla.getValueAt(fila, 5).toString());
+
+            // Código PG no debe editarse
+            txtCodigo.setEnabled(false);
+        }
+    }
+
+    private void limpiarCampos() {
+        txtCodigo.setText("");
+        txtCapacidad.setText("");
+        txtTamanoLote.setText("");
+        txtUbicacion.setText("");
+        txtPrecio.setText("");
+        txtUtilidades.setText("");
+        txtCodigo.setEnabled(true);
+        tablaVZ.clearSelection();
+    }
+
+    private void agregarRegistro() {
+        AgregarRegistroFrameVz agregarFrame = new AgregarRegistroFrameVz();
+        agregarFrame.setVisible(true);
+    }
+
+    private void modificarRegistro() {
+        if (!validarCampos()) return;
+
+        String sql = "UPDATE VillaZojha SET Capacidad = ?, TamanodeLote = ?, Ubicacion = ?, Precio = ?, Utilidades = ? WHERE CodigoVZ = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, Integer.parseInt(txtCapacidad.getText()));
+            ps.setInt(2, Integer.parseInt(txtTamanoLote.getText()));
+            ps.setString(3, txtUbicacion.getText());
+            ps.setDouble(4, Double.parseDouble(txtPrecio.getText()));
+            ps.setDouble(5, Double.parseDouble(txtUtilidades.getText()));
+            ps.setInt(6, Integer.parseInt(txtCodigo.getText()));
+
+            int filas = ps.executeUpdate();
+
+            if (filas > 0) {
+                JOptionPane.showMessageDialog(this, "Registro modificado correctamente");
+                cargarDatosDesdeBD();
+                limpiarCampos();
+            } else {
+                JOptionPane.showMessageDialog(this, "No se encontró el registro para modificar");
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al modificar: " + e.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void eliminarRegistro() {
+        int fila = tablaVZ.getSelectedRow();
+
+        if (fila == -1) {
+            JOptionPane.showMessageDialog(this, "Seleccione un registro para eliminar");
+            return;
+        }
+
+        int codigo = Integer.parseInt(modeloTabla.getValueAt(fila, 0).toString());
+
+        int confirm = JOptionPane.showConfirmDialog(this, "¿Está seguro de eliminar el registro con Código VZ " + codigo + "?", "Confirmar eliminación", JOptionPane.YES_NO_OPTION);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            String sql = "DELETE FROM VillaZojha WHERE CodigoVZ = ?";
+
+
+            try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+
+                ps.setInt(1, codigo);
+                int filas = ps.executeUpdate();
+
+                if (filas > 0) {
+                    JOptionPane.showMessageDialog(this, "Registro eliminado correctamente");
+                    cargarDatosDesdeBD();
+                    limpiarCampos();
+                } else {
+                    JOptionPane.showMessageDialog(this, "No se encontró el registro para eliminar");
+                }
+
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Error al eliminar: " + e.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private boolean validarCampos() {
+        if (txtCodigo.getText().isEmpty() || txtCapacidad.getText().isEmpty() || txtTamanoLote.getText().isEmpty() ||
+            txtUbicacion.getText().isEmpty() || txtPrecio.getText().isEmpty() || txtUtilidades.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Complete todos los campos");
+            return false;
+        }
+        try {
+            Integer.parseInt(txtCodigo.getText());
+            Integer.parseInt(txtCapacidad.getText());
+            Integer.parseInt(txtTamanoLote.getText());
+            Double.parseDouble(txtPrecio.getText());
+            Double.parseDouble(txtUtilidades.getText());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Campos numéricos inválidos");
+            return false;
+        }
+        return true;
+    }
+
+    private void cargarDatosDesdeBD() {
+        modeloTabla.setRowCount(0);
+
+        String consulta = "SELECT CodigoVZ, Capacidad, TamanodeLote, Ubicacion, Precio, Utilidades FROM VillaZojha";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement ps = conn.prepareStatement(consulta);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Object[] fila = new Object[6];
+                fila[0] = rs.getInt("CodigoVZ");
+                fila[1] = rs.getInt("Capacidad");
+                fila[2] = rs.getInt("TamanodeLote");
+                fila[3] = rs.getString("Ubicacion");
+                fila[4] = rs.getDouble("Precio");
+                fila[5] = rs.getDouble("Utilidades");
+
+                modeloTabla.addRow(fila);
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al cargar datos: " + e.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+
+    // Nuevo método para buscar registros según código o ubicación
+    private void buscarRegistros() {
+        String criterio = txtBuscar.getText().trim();
+        if (criterio.isEmpty()) {
+            cargarDatosDesdeBD();
+            return;
+        }
+
+        modeloTabla.setRowCount(0);
+        String consulta = "SELECT CodigoVZ, Capacidad, TamanodeLote, Ubicacion, Precio, Utilidades FROM VillaZojha WHERE LOWER(Ubicacion) LIKE ? OR CodigoVZ = ?";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement ps = conn.prepareStatement(consulta)) {
+             
+            ps.setString(1, "%" + criterio.toLowerCase() + "%");
+            int codigoBusca = -1;
+            try {
+                codigoBusca = Integer.parseInt(criterio);
+            } catch (NumberFormatException e) {
+                // No es código valido, se queda como -1 para no coincidir
+            }
+            ps.setInt(2, codigoBusca);
+
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Object[] fila = new Object[6];
+                fila[0] = rs.getInt("CodigoVZ");
+                fila[1] = rs.getInt("Capacidad");
+                fila[2] = rs.getInt("TamanodeLote");
+                fila[3] = rs.getString("Ubicacion");
+                fila[4] = rs.getDouble("Precio");
+                fila[5] = rs.getDouble("Utilidades");
+
+                modeloTabla.addRow(fila);
+            }
+            rs.close();
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Error al buscar datos: " + e.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 400, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 300, Short.MAX_VALUE)
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(VillaZojha.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(VillaZojha.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(VillaZojha.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(VillaZojha.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new VillaZojha().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // End of variables declaration//GEN-END:variables
+}

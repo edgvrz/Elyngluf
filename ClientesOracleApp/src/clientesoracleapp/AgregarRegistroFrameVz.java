@@ -1,0 +1,162 @@
+
+package clientesoracleapp;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+
+
+public class AgregarRegistroFrameVz extends javax.swing.JFrame {
+
+  
+     
+private JTextField txtCodigo, txtCapacidad, txtTamanoLote, txtUbicacion, txtPrecio, txtUtilidades;
+    private JButton btnGuardar, btnCancelar;
+
+    private final String URL = "jdbc:oracle:thin:@localhost:1521:XE";       // Cambia por tu URL
+    private final String USER = "SYSTEM";     // Cambia por tu usuario
+    private final String PASSWORD = "Oracle";// Cambia por tu contraseña
+    
+    public AgregarRegistroFrameVz() {
+         setTitle("Agregar Registro");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5,5,5,5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        txtCodigo = new JTextField(15);
+        txtCapacidad = new JTextField(15);
+        txtTamanoLote = new JTextField(15);
+        txtUbicacion = new JTextField(15);
+        txtPrecio = new JTextField(15);
+        txtUtilidades = new JTextField(15);
+
+        // Etiquetas y campos
+        gbc.gridx = 0; gbc.gridy = 0; add(new JLabel("Código:"), gbc);
+        gbc.gridx = 1; add(txtCodigo, gbc);
+
+        gbc.gridx = 0; gbc.gridy++; add(new JLabel("Capacidad:"), gbc);
+        gbc.gridx = 1; add(txtCapacidad, gbc);
+
+        gbc.gridx = 0; gbc.gridy++; add(new JLabel("Tamaño de Lote:"), gbc);
+        gbc.gridx = 1; add(txtTamanoLote, gbc);
+
+        gbc.gridx = 0; gbc.gridy++; add(new JLabel("Ubicación:"), gbc);
+        gbc.gridx = 1; add(txtUbicacion, gbc);
+
+        gbc.gridx = 0; gbc.gridy++; add(new JLabel("Precio:"), gbc);
+        gbc.gridx = 1; add(txtPrecio, gbc);
+
+        gbc.gridx = 0; gbc.gridy++; add(new JLabel("Utilidades:"), gbc);
+        gbc.gridx = 1; add(txtUtilidades, gbc);
+
+        // Botones
+        btnGuardar = new JButton("Guardar");
+        btnCancelar = new JButton("Cancelar");
+
+        JPanel panelBotones = new JPanel();
+        panelBotones.add(btnGuardar);
+        panelBotones.add(btnCancelar);
+
+        gbc.gridx = 0; gbc.gridy++; gbc.gridwidth = 2;
+        add(panelBotones, gbc);
+
+        // Eventos botones
+        btnGuardar.addActionListener(e -> guardarRegistro());
+        btnCancelar.addActionListener(e -> this.dispose());
+
+        pack();
+        setLocationRelativeTo(null);  // Centrar ventana
+    }
+
+    private void guardarRegistro() {
+        if (txtCodigo.getText().isEmpty() || txtCapacidad.getText().isEmpty() || 
+            txtTamanoLote.getText().isEmpty() || txtUbicacion.getText().isEmpty() ||
+            txtPrecio.getText().isEmpty() || txtUtilidades.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Por favor, complete todos los campos", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        String sql = "INSERT INTO VillaZojha (CodigoVZ, Capacidad, TamanodeLote, Ubicacion, Precio, Utilidades) VALUES (?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, Integer.parseInt(txtCodigo.getText()));
+            ps.setInt(2, Integer.parseInt(txtCapacidad.getText()));
+            ps.setInt(3, Integer.parseInt(txtTamanoLote.getText()));
+            ps.setString(4, txtUbicacion.getText());
+            ps.setDouble(5, Double.parseDouble(txtPrecio.getText()));
+            ps.setDouble(6, Double.parseDouble(txtUtilidades.getText()));
+
+            int filas = ps.executeUpdate();
+
+            if (filas > 0) {
+                JOptionPane.showMessageDialog(this, "Registro agregado correctamente");
+                this.dispose();  // Cerrar ventana
+            }
+
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error al agregar: " + ex.getMessage(), "Error BD", JOptionPane.ERROR_MESSAGE);
+        }
+    
+    }
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 400, Short.MAX_VALUE)
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 300, Short.MAX_VALUE)
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(AgregarRegistroFrameVz.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(AgregarRegistroFrameVz.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(AgregarRegistroFrameVz.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(AgregarRegistroFrameVz.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new AgregarRegistroFrameVz().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    // End of variables declaration//GEN-END:variables
+}
